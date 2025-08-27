@@ -1,28 +1,26 @@
-from grid_extraction import extract_grid_and_digits
-from solver import build_graph, solve_zip
-import cv2
+from screen_capture import ScreenCapture
+from digit_extractor import DigitExtractor
+from solver import PuzzleSolver
+from overlay import Overlay
 
 def main():
-    # Extract digits
-    digits, cells, img = extract_grid_and_digits("sample_puzzle.png", debug=True)
+    # Step 1: Load puzzle (from image for now)
+    sc = ScreenCapture("assets/puzzle.png")
+    frame = sc.get_frame()
 
-    print("Detected digits:", digits)
+    # Step 2: Extract digits
+    extractor = DigitExtractor(frame)
+    digits, positions = extractor.extract_digits()
 
-    # Build graph + solve
-    G = build_graph(digits)
-    solution = solve_zip(G)
+    # Step 3: Solve puzzle
+    solver = PuzzleSolver(digits, positions)
+    path = solver.solve()
 
-    print("Solution path:", [G.nodes[n]['value'] for n in solution])
+    # Step 4: Overlay solution
+    overlay = Overlay(frame, path)
+    solved_frame = overlay.draw_solution()
 
-    # Draw solution path
-    for i in range(len(solution) - 1):
-        x1, y1 = solution[i]
-        x2, y2 = solution[i+1]
-        cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-    cv2.imshow("Solution", img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    print("Pipeline complete. Solution overlay ready.")
 
 if __name__ == "__main__":
     main()
